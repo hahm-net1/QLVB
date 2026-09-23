@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "Task": {
+      "title": "Task",
+      "description": "Văn bản giao việc kỹ thuật VNPT",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "docNumber": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 1000 },
+        "issueDate": { "type": "string", "maxLength": 20 },
+        "dueDate": { "type": "string", "maxLength": 20 },
+        "assignee": { "type": "string", "maxLength": 100 },
+        "department": { "type": "string", "maxLength": 100 },
+        "priority": { "type": "string", "enum": ["Bình thường", "Quan trọng", "Khẩn cấp"] },
+        "status": { "type": "string", "enum": ["Đang thực hiện", "Hoàn thành", "Tạm dừng", "Chờ duyệt"] },
+        "progressPercent": { "type": "number" },
+        "notes": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "docNumber", "title", "dueDate", "assignee", "status", "priority"]
+    }
+  },
+  "firestore": {
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Danh sách các văn bản điều hành, giao việc và đôn đốc kỹ thuật"
+    }
+  }
+}

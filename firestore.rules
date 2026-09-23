@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidTask(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.docNumber is string && data.docNumber.size() > 0 && data.docNumber.size() <= 100
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 1000
+        && data.issueDate is string && data.issueDate.size() <= 30
+        && data.dueDate is string && data.dueDate.size() <= 30
+        && data.assignee is string && data.assignee.size() <= 100
+        && data.priority in ['Bình thường', 'Quan trọng', 'Khẩn cấp']
+        && data.status in ['Đang thực hiện', 'Hoàn thành', 'Tạm dừng', 'Chờ duyệt']
+        && data.progressPercent is number && data.progressPercent >= 0 && data.progressPercent <= 100
+        && data.notes is list && data.notes.size() <= 200;
+    }
+
+    match /tasks/{taskId} {
+      allow read: if true;
+      allow create, update: if isValidTask(request.resource.data);
+      allow delete: if true;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
