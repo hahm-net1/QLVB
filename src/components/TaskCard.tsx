@@ -1,10 +1,24 @@
 import React, { useState } from 'react';
-import { TaskDocument } from '../types';
+import { TaskDocument, UserRole } from '../types';
 import { getUrgencyBadge, getPriorityBadge, getStatusBadge } from '../utils/taskUtils';
-import { Calendar, User, Building2, MessageSquare, Edit3, Trash2, CheckCircle2, Clock, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Calendar,
+  User,
+  Building2,
+  MessageSquare,
+  Edit3,
+  Trash2,
+  CheckCircle2,
+  Clock,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  TrendingUp,
+} from 'lucide-react';
 
 interface TaskCardProps {
   task: TaskDocument;
+  userRole: UserRole;
   onEdit: (task: TaskDocument) => void;
   onDelete: (id: string) => void;
   onAddNote: (taskId: string, noteContent: string) => void;
@@ -13,6 +27,7 @@ interface TaskCardProps {
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
+  userRole,
   onEdit,
   onDelete,
   onAddNote,
@@ -90,11 +105,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
             <div className="flex items-center space-x-1.5">
               <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span>Ban hành: <strong className="text-slate-800">{task.issueDate}</strong></span>
+              <span>
+                Ban hành: <strong className="text-slate-800 font-mono tabular-nums">{task.issueDate}</strong>
+              </span>
             </div>
             <div className="flex items-center space-x-1.5">
               <Clock className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-              <span>Hạn BC: <strong className="text-slate-800">{task.dueDate}</strong></span>
+              <span>
+                Hạn BC: <strong className="text-slate-800 font-mono tabular-nums">{task.dueDate}</strong>
+              </span>
             </div>
           </div>
 
@@ -102,14 +121,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="space-y-1">
             <div className="flex justify-between text-xs font-medium">
               <span className="text-slate-500">Tiến độ thực hiện</span>
-              <span className={task.progressPercent === 100 ? 'text-emerald-600 font-bold' : 'text-slate-700'}>
+              <span
+                className={`font-mono tabular-nums ${
+                  task.progressPercent === 100 ? 'text-emerald-600 font-bold' : 'text-slate-700'
+                }`}
+              >
                 {task.progressPercent}%
               </span>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${
-                  task.progressPercent === 100 ? 'bg-emerald-500' : task.progressPercent > 50 ? 'bg-[#005BAB]' : 'bg-orange-500'
+                  task.progressPercent === 100
+                    ? 'bg-emerald-500'
+                    : task.progressPercent > 50
+                    ? 'bg-[#005BAB]'
+                    : 'bg-orange-500'
                 }`}
                 style={{ width: `${task.progressPercent}%` }}
               />
@@ -119,8 +146,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {/* Note History Toggle & Count */}
           <div className="pt-1 flex items-center justify-between">
             <button
+              type="button"
               onClick={() => setShowNotes(!showNotes)}
-              className="flex items-center space-x-1 text-xs text-[#005BAB] hover:underline font-medium"
+              className="flex items-center space-x-1 text-xs text-[#005BAB] hover:underline font-medium cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Ghi chú tiến độ ({task.notes.length})</span>
@@ -129,12 +157,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {task.status !== 'Hoàn thành' && (
               <button
+                type="button"
                 onClick={handleQuickComplete}
-                className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-medium px-2.5 py-1 rounded transition flex items-center space-x-1"
-                title="Đánh dấu hoàn thành 100%"
+                className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium px-2.5 py-1 rounded-lg transition flex items-center space-x-1 cursor-pointer"
+                title="Báo cáo hoàn thành 100%"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Hoàn thành nhanh</span>
+                <span>Báo cáo hoàn thành</span>
               </button>
             )}
           </div>
@@ -150,7 +179,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     <div key={note.id} className="bg-white p-2.5 rounded-lg border border-slate-200 text-xs shadow-2xs">
                       <div className="flex items-center justify-between text-slate-400 mb-1">
                         <span className="font-semibold text-slate-700">{note.author}</span>
-                        <span>{note.timestamp}</span>
+                        <span className="font-mono tabular-nums">{note.timestamp}</span>
                       </div>
                       <p className="text-slate-600 leading-relaxed">{note.content}</p>
                     </div>
@@ -173,13 +202,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsAddingNote(false)}
-                      className="px-2.5 py-1 text-xs text-slate-600 bg-slate-200 hover:bg-slate-300 rounded"
+                      className="px-2.5 py-1 text-xs text-slate-600 bg-slate-200 hover:bg-slate-300 rounded cursor-pointer"
                     >
                       Hủy
                     </button>
                     <button
                       type="submit"
-                      className="px-2.5 py-1 text-xs text-white bg-[#005BAB] hover:bg-[#004a8b] rounded font-medium"
+                      className="px-2.5 py-1 text-xs text-white bg-[#005BAB] hover:bg-[#004a8b] rounded font-medium cursor-pointer"
                     >
                       Lưu ghi chú
                     </button>
@@ -187,8 +216,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 </form>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setIsAddingNote(true)}
-                  className="w-full py-1.5 border border-dashed border-blue-300 text-[#005BAB] hover:bg-blue-50/50 rounded-lg text-xs font-medium flex items-center justify-center space-x-1 transition"
+                  className="w-full py-1.5 border border-dashed border-blue-300 text-[#005BAB] hover:bg-blue-50/50 rounded-lg text-xs font-medium flex items-center justify-center space-x-1 transition cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Thêm ghi chú tiến độ</span>
@@ -201,24 +231,42 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
       {/* Footer Actions */}
       <div className="px-4 py-3 bg-white border-t border-slate-100 flex items-center justify-between">
-        <span className="text-[11px] text-slate-400">
+        <span className="text-[11px] font-mono tabular-nums text-slate-400">
           Cập nhật: {task.updatedAt ? task.updatedAt.slice(0, 10) : task.createdAt.slice(0, 10)}
         </span>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1.5">
           <button
+            type="button"
             onClick={() => onEdit(task)}
-            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-            title="Chỉnh sửa văn bản / công việc"
+            className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-[#005BAB] bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition cursor-pointer"
+            title={
+              userRole === 'admin'
+                ? 'Chỉnh sửa văn bản / công việc'
+                : 'Cập nhật tiến độ & Báo cáo hoàn thành'
+            }
           >
-            <Edit3 className="w-4 h-4" />
+            {userRole === 'admin' ? (
+              <>
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Chỉnh sửa</span>
+              </>
+            ) : (
+              <>
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>Cập nhật tiến độ</span>
+              </>
+            )}
           </button>
-          <button
-            onClick={() => onDelete(task.id)}
-            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
-            title="Xóa văn bản"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {userRole === 'admin' && (
+            <button
+              type="button"
+              onClick={() => onDelete(task.id)}
+              className="p-1.5 text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition cursor-pointer"
+              title="Xóa văn bản (Chỉ Admin)"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

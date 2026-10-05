@@ -21,6 +21,20 @@ service cloud.firestore {
       allow delete: if true;
     }
 
+    function isValidDailyNote(data) {
+      return data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.noteDate is string && data.noteDate.size() > 0 && data.noteDate.size() <= 30
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 1000
+        && data.dueDate is string && data.dueDate.size() > 0 && data.dueDate.size() <= 30
+        && data.completed is bool;
+    }
+
+    match /daily_notes/{noteId} {
+      allow read: if true;
+      allow create, update: if isValidDailyNote(request.resource.data);
+      allow delete: if true;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

@@ -18,7 +18,7 @@ import {
   getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
-import { TaskDocument } from './types';
+import { TaskDocument, DailyTodoNote } from './types';
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL: The app will break without this line */
@@ -142,6 +142,52 @@ export async function seedInitialTasksIfEmpty(mockTasks: TaskDocument[]): Promis
     }
   } catch (error) {
     console.warn('Could not seed initial tasks to Firestore:', error);
+  }
+}
+
+// Subscribe to daily_notes collection in real time
+export function subscribeToDailyNotes(
+  onData: (notes: DailyTodoNote[]) => void,
+  onError?: (err: unknown) => void
+): () => void {
+  const notesCol = collection(db, 'daily_notes');
+  const unsubscribe = onSnapshot(
+    notesCol,
+    (snapshot) => {
+      const list: DailyTodoNote[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as DailyTodoNote;
+        list.push({ ...data, id: docSnap.id });
+      });
+      onData(list);
+    },
+    (error) => {
+      if (onError) onError(error);
+      handleFirestoreError(error, OperationType.LIST, 'daily_notes');
+    }
+  );
+  return unsubscribe;
+}
+
+// Save or Update a DailyTodoNote to Firestore
+export async function saveDailyNoteToFirestore(note: DailyTodoNote): Promise<void> {
+  const path = `daily_notes/${note.id}`;
+  try {
+    const noteDocRef = doc(db, 'daily_notes', note.id);
+    await setDoc(noteDocRef, note, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+// Delete a DailyTodoNote from Firestore
+export async function deleteDailyNoteFromFirestore(noteId: string): Promise<void> {
+  const path = `daily_notes/${noteId}`;
+  try {
+    const noteDocRef = doc(db, 'daily_notes', noteId);
+    await deleteDoc(noteDocRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, path);
   }
 }
 

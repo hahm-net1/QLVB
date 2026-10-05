@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, LayoutGrid, Table, User, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Table, Calendar, RefreshCw } from 'lucide-react';
 import { FilterState } from '../types';
 
 interface FilterBarProps {
@@ -87,29 +87,33 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </button>
         )}
 
-        {/* View Mode Toggle */}
+        {/* View Mode Toggle: Only Table & Calendar */}
         <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 ml-auto sm:ml-0">
           <button
-            onClick={() => onFilterChange({ viewMode: 'grid' })}
-            className={`p-1.5 rounded-md transition ${
-              filterState.viewMode === 'grid'
-                ? 'bg-white text-[#005BAB] shadow-sm font-semibold'
-                : 'text-slate-500 hover:text-slate-700'
-            }`}
-            title="Dạng Thẻ (Grid)"
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </button>
-          <button
+            type="button"
             onClick={() => onFilterChange({ viewMode: 'table' })}
-            className={`p-1.5 rounded-md transition ${
+            className={`px-2.5 py-1.5 rounded-md transition flex items-center space-x-1 text-xs cursor-pointer ${
               filterState.viewMode === 'table'
                 ? 'bg-white text-[#005BAB] shadow-sm font-semibold'
                 : 'text-slate-500 hover:text-slate-700'
             }`}
-            title="Dạng Bảng (Table)"
+            title="Dạng Bảng thống kê (Table)"
           >
             <Table className="w-4 h-4" />
+            <span className="hidden md:inline">Bảng</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onFilterChange({ viewMode: 'calendar' })}
+            className={`px-2.5 py-1.5 rounded-md transition flex items-center space-x-1 text-xs cursor-pointer ${
+              filterState.viewMode === 'calendar'
+                ? 'bg-white text-[#005BAB] shadow-sm font-semibold'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+            title="Dạng Lịch hoàn thành (Calendar)"
+          >
+            <Calendar className="w-4 h-4" />
+            <span className="hidden md:inline">Lịch hoàn thành</span>
           </button>
         </div>
       </div>

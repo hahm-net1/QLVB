@@ -1,4 +1,4 @@
-import { TaskDocument } from '../types';
+import { TaskDocument, DailyTodoNote } from '../types';
 import { calculateDaysRemaining } from './taskUtils';
 
 export type NotificationStatus = 'default' | 'granted' | 'denied' | 'unsupported';
@@ -29,6 +29,17 @@ export function getNearDueTasks(tasks: TaskDocument[]): { task: TaskDocument; da
     .map((task) => ({
       task,
       daysRemaining: calculateDaysRemaining(task.dueDate),
+    }))
+    .filter((item) => item.daysRemaining <= 1)
+    .sort((a, b) => a.daysRemaining - b.daysRemaining);
+}
+
+export function getNearDueNotes(notes: DailyTodoNote[]): { note: DailyTodoNote; daysRemaining: number }[] {
+  return notes
+    .filter((note) => !note.completed)
+    .map((note) => ({
+      note,
+      daysRemaining: calculateDaysRemaining(note.dueDate),
     }))
     .filter((item) => item.daysRemaining <= 1)
     .sort((a, b) => a.daysRemaining - b.daysRemaining);
@@ -87,22 +98,52 @@ export function notifyTaskDeadline(task: TaskDocument, daysRemaining: number): N
   });
 }
 
+export function notifyNoteDeadline(note: DailyTodoNote, daysRemaining: number): Notification | null {
+  let title = '';
+  let urgencyText = '';
+
+  if (daysRemaining < 0) {
+    const overdueDays = Math.abs(daysRemaining);
+    title = `⚠️ [NOTE QUÁ HẠN ${overdueDays} NGÀY] To-Do ngày ${note.noteDate}`;
+    urgencyText = `Đã quá hạn ${overdueDays} ngày (Hạn: ${note.dueDate})`;
+  } else if (daysRemaining === 0) {
+    title = `🚨 [NOTE HẠN HÔM NAY] To-Do ngày ${note.noteDate}`;
+    urgencyText = `Hạn hoàn thành là HÔM NAY (${note.dueDate})`;
+  } else {
+    title = `⏰ [NOTE CÒN 1 NGÀY] To-Do ngày ${note.noteDate}`;
+    urgencyText = `Còn 1 ngày nữa đến hạn (${note.dueDate})`;
+  }
+
+  const body = `${urgencyText}\nNội dung: ${note.title.slice(0, 90)}${note.title.length > 90 ? '...' : ''}`;
+
+  return sendBrowserNotification(title, {
+    body,
+    tag: `note-${note.id}-${daysRemaining}`,
+  });
+}
+
 /**
- * Scan all tasks and trigger notifications for tasks <= 1 day
- * Keeps track of notified tasks in localStorage per day to avoid spamming
+ * Scan all tasks and daily notes and trigger notifications for items <= 1 day
+ * Keeps track of notified items in localStorage per day to avoid spamming
  */
 export function checkAndNotifyNearDueTasks(
   tasks: TaskDocument[],
-  forceAlert = false
-): { notifiedCount: number; urgentTasks: { task: TaskDocument; daysRemaining: number }[] } {
+  forceAlert = false,
+  dailyNotes: DailyTodoNote[] = []
+): {
+  notifiedCount: number;
+  urgentTasks: { task: TaskDocument; daysRemaining: number }[];
+  urgentNotes: { note: DailyTodoNote; daysRemaining: number }[];
+} {
   const urgentTasks = getNearDueTasks(tasks);
+  const urgentNotes = getNearDueNotes(dailyNotes);
 
-  if (urgentTasks.length === 0) {
-    return { notifiedCount: 0, urgentTasks: [] };
+  if (urgentTasks.length === 0 && urgentNotes.length === 0) {
+    return { notifiedCount: 0, urgentTasks: [], urgentNotes: [] };
   }
 
   if (!isNotificationSupported() || Notification.permission !== 'granted') {
-    return { notifiedCount: 0, urgentTasks };
+    return { notifiedCount: 0, urgentTasks, urgentNotes };
   }
 
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -126,12 +167,10 @@ export function checkAndNotifyNearDueTasks(
   let notifiedCount = 0;
 
   urgentTasks.forEach(({ task, daysRemaining }, index) => {
-    // If not forcing alert, only notify once per task per day
     if (!forceAlert && notifiedIds.has(task.id)) {
       return;
     }
 
-    // Stagger notifications slightly so the browser doesn't swallow multiple simultaneous alerts
     setTimeout(() => {
       notifyTaskDeadline(task, daysRemaining);
     }, index * 400);
@@ -140,9 +179,23 @@ export function checkAndNotifyNearDueTasks(
     notifiedCount++;
   });
 
+  urgentNotes.forEach(({ note, daysRemaining }, index) => {
+    const key = `note_${note.id}`;
+    if (!forceAlert && notifiedIds.has(key)) {
+      return;
+    }
+
+    setTimeout(() => {
+      notifyNoteDeadline(note, daysRemaining);
+    }, (urgentTasks.length + index) * 400);
+
+    notifiedIds.add(key);
+    notifiedCount++;
+  });
+
   try {
     localStorage.setItem(storageKey, JSON.stringify(Array.from(notifiedIds)));
   } catch (e) {}
 
-  return { notifiedCount, urgentTasks };
+  return { notifiedCount, urgentTasks, urgentNotes };
 }
