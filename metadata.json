@@ -1,6 +1,6 @@
 {
   "name": "Quản lý CV",
-  "description": "Hệ thống quản lý, phân công và đôn đốc văn bản giao việc, theo dõi tiến độ chi tiết, cảnh báo hạn báo cáo và xuất báo cáo Excel cho Chuyên viên Kỹ thuật.",
+  "description": "Hệ thống quản lý văn bản, theo dõi tiến độ cho Chuyên viên Kỹ thuật.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
