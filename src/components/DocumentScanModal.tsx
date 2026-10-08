@@ -258,7 +258,13 @@ export const DocumentScanModal: React.FC<DocumentScanModalProps> = ({
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
+      const contentType = response.headers.get('content-type') || '';
+      if (!response.ok || contentType.includes('text/html')) {
+        if (contentType.includes('text/html') || response.status === 404) {
+          throw new Error(
+            'Không kết nối được máy chủ AI (/api/scan-document). Website này đang mở ở chế độ Web tĩnh (Netlify/GitHub Pages) nên không có máy chủ Node.js chạy ngầm để gọi AI Gemini. Vui lòng mở bằng đường link ứng dụng trực tiếp trên AI Studio / Cloud Run hoặc chạy với máy chủ Node.js đầy đủ.'
+          );
+        }
         const errJson = await response.json().catch(() => ({}));
         throw new Error(errJson.error || `Lỗi máy chủ (${response.status}) khi quét văn bản.`);
       }

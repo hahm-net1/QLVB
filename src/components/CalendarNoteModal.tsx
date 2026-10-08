@@ -79,11 +79,11 @@ export const CalendarNoteModal: React.FC<CalendarNoteModalProps> = ({
       title: title.trim(),
       noteDate: noteDate || dueDate,
       dueDate,
-      assignee: assignee.trim() || undefined,
-      priority,
-      details: details.trim() || undefined,
+      assignee: assignee.trim() || '',
+      priority: priority || 'Bình thường',
+      details: details.trim() || '',
       completed,
-      completedAt: completed ? (editingNote?.completedAt || new Date().toISOString().replace('T', ' ').slice(0, 16)) : undefined,
+      completedAt: completed ? (editingNote?.completedAt || new Date().toISOString().replace('T', ' ').slice(0, 16)) : '',
     });
     onClose();
   };

@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Sparkles,
   ScanLine,
+  Send,
 } from 'lucide-react';
 
 const UNIT_OPTIONS = [
@@ -35,6 +36,7 @@ interface TaskModalProps {
   assignees: string[];
   userRole: UserRole;
   onRequestAdmin?: () => void;
+  onOpenReminder?: (task: TaskDocument) => void;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -47,6 +49,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   assignees,
   userRole,
   onRequestAdmin,
+  onOpenReminder,
 }) => {
   const [docCodeNum, setDocCodeNum] = useState('');
   const [docIssuer, setDocIssuer] = useState(UNIT_OPTIONS[0]);
@@ -568,27 +571,43 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </div>
 
           {/* Buttons */}
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition cursor-pointer"
-            >
-              Hủy bỏ
-            </button>
-            <button
-              type="submit"
-              className="flex items-center space-x-1.5 px-5 py-2 text-sm text-white bg-[#005BAB] hover:bg-[#004a8b] rounded-lg font-semibold shadow-md transition active:scale-95 cursor-pointer"
-            >
-              <Save className="w-4 h-4" />
-              <span>
-                {isGuestMode
-                  ? 'Lưu báo cáo tiến độ'
-                  : editingTask
-                  ? 'Lưu thay đổi'
-                  : 'Tạo mới văn bản'}
-              </span>
-            </button>
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
+            <div>
+              {editingTask && onOpenReminder && (
+                <button
+                  type="button"
+                  onClick={() => onOpenReminder(editingTask)}
+                  className="inline-flex items-center space-x-1.5 px-3 py-2 text-xs sm:text-sm text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg font-semibold transition cursor-pointer"
+                  title="Nhắc việc / Sao chép tin nhắn, gửi Viber"
+                >
+                  <Send className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Xuất tin nhắn nhắc việc</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="submit"
+                className="flex items-center space-x-1.5 px-5 py-2 text-sm text-white bg-[#005BAB] hover:bg-[#004a8b] rounded-lg font-semibold shadow-md transition active:scale-95 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                <span>
+                  {isGuestMode
+                    ? 'Lưu báo cáo tiến độ'
+                    : editingTask
+                    ? 'Lưu thay đổi'
+                    : 'Tạo mới văn bản'}
+                </span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

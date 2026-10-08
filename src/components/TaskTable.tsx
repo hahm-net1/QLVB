@@ -1,7 +1,7 @@
 import React from 'react';
 import { TaskDocument, UserRole } from '../types';
 import { getUrgencyBadge, getPriorityBadge, getStatusBadge } from '../utils/taskUtils';
-import { Edit3, Trash2, CheckCircle2, TrendingUp } from 'lucide-react';
+import { Edit3, Trash2, CheckCircle2, TrendingUp, Send, MessageSquare } from 'lucide-react';
 
 interface TaskTableProps {
   tasks: TaskDocument[];
@@ -9,6 +9,7 @@ interface TaskTableProps {
   onEdit: (task: TaskDocument) => void;
   onDelete: (id: string) => void;
   onQuickComplete: (taskId: string) => void;
+  onOpenReminder?: (task: TaskDocument) => void;
 }
 
 export const TaskTable: React.FC<TaskTableProps> = ({
@@ -17,6 +18,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   onEdit,
   onDelete,
   onQuickComplete,
+  onOpenReminder,
 }) => {
   if (tasks.length === 0) {
     return (
@@ -115,6 +117,18 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span className="hidden xl:inline">Hoàn thành</span>
+                        </button>
+                      )}
+                      {/* Nhắc việc / Sao chép / Viber */}
+                      {onOpenReminder && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenReminder(task)}
+                          className="inline-flex items-center space-x-1 px-2 py-1 text-xs font-medium text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition cursor-pointer"
+                          title="Nhắc việc / Sao chép tin nhắn, gửi Viber"
+                        >
+                          <Send className="w-3.5 h-3.5 text-amber-700" />
+                          <span className="hidden xl:inline">Nhắc việc</span>
                         </button>
                       )}
                       <button

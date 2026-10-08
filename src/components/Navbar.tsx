@@ -32,6 +32,9 @@ interface NavbarProps {
   dailyNotes?: DailyTodoNote[];
   onSelectTask?: (task: TaskDocument) => void;
   onSelectNote?: (note: DailyTodoNote) => void;
+  onOpenTaskReminder?: (task: TaskDocument) => void;
+  onOpenNoteReminder?: (note: DailyTodoNote) => void;
+  onOpenDigestReminder?: () => void;
   isCloudConnected?: boolean;
   currentUser?: { email: string | null; displayName: string | null; photoURL: string | null } | null;
   onSignInGoogle?: () => void;
@@ -53,6 +56,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   dailyNotes = [],
   onSelectTask,
   onSelectNote,
+  onOpenTaskReminder,
+  onOpenNoteReminder,
+  onOpenDigestReminder,
   isCloudConnected = true,
   currentUser,
   onSignInGoogle,
@@ -100,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               <h1 className="text-base sm:text-xl font-bold tracking-tight text-white whitespace-nowrap">
                 <span className="sm:hidden font-extrabold tracking-wide">QLVB</span>
-                <span className="hidden sm:inline">Quản lý Văn bản & Công việc</span>
+                <span className="hidden sm:inline">Quản lý Văn bản </span>
               </h1>
             </div>
           </div>
@@ -173,6 +179,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               dailyNotes={dailyNotes}
               onSelectTask={onSelectTask}
               onSelectNote={onSelectNote}
+              onOpenTaskReminder={onOpenTaskReminder}
+              onOpenNoteReminder={onOpenNoteReminder}
+              onOpenDigestReminder={onOpenDigestReminder}
             />
 
             {/* Unified Action Button: Xuất & Sao lưu (Ẩn trên mobile để tối ưu không gian, chỉ hiện trên sm trở lên) */}

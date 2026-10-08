@@ -11,6 +11,8 @@ import {
   ShieldAlert,
   ListTodo,
   BookmarkCheck,
+  Send,
+  MessageSquare,
 } from 'lucide-react';
 import { TaskDocument, DailyTodoNote } from '../types';
 import {
@@ -27,6 +29,9 @@ interface NotificationCenterProps {
   dailyNotes?: DailyTodoNote[];
   onSelectTask?: (task: TaskDocument) => void;
   onSelectNote?: (note: DailyTodoNote) => void;
+  onOpenTaskReminder?: (task: TaskDocument) => void;
+  onOpenNoteReminder?: (note: DailyTodoNote) => void;
+  onOpenDigestReminder?: () => void;
 }
 
 export const NotificationCenter: React.FC<NotificationCenterProps> = ({
@@ -34,6 +39,9 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   dailyNotes = [],
   onSelectTask,
   onSelectNote,
+  onOpenTaskReminder,
+  onOpenNoteReminder,
+  onOpenDigestReminder,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [permission, setPermission] = useState<NotificationStatus>(getNotificationPermission());
@@ -247,7 +255,24 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
                       <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
                         <span>CBKT: <strong className="text-slate-700">{task.assignee || 'Chưa phân công'}</strong></span>
-                        <span>Hạn: <strong className="text-slate-700">{task.dueDate}</strong></span>
+                        <div className="flex items-center space-x-2">
+                          <span>Hạn: <strong className="text-slate-700">{task.dueDate}</strong></span>
+                          {onOpenTaskReminder && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(false);
+                                onOpenTaskReminder(task);
+                              }}
+                              className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-md flex items-center space-x-1 transition cursor-pointer"
+                              title="Nhắc việc / Sao chép tin nhắn, gửi Viber"
+                            >
+                              <Send className="w-2.5 h-2.5" />
+                              <span>Nhắc việc</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -295,8 +320,25 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                       </p>
 
                       <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-                        <span>Sổ tay Note cá nhân</span>
-                        <span>Hạn hoàn thành: <strong className="text-red-700 font-mono">{note.dueDate}</strong></span>
+                        <span>CBKT: {note.assignee || 'Ghi chú lịch'}</span>
+                        <div className="flex items-center space-x-2">
+                          <span>Hạn: <strong className="text-red-700 font-mono">{note.dueDate}</strong></span>
+                          {onOpenNoteReminder && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(false);
+                                onOpenNoteReminder(note);
+                              }}
+                              className="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-md flex items-center space-x-1 transition cursor-pointer"
+                              title="Nhắc việc / Sao chép tin nhắn, gửi Viber"
+                            >
+                              <Send className="w-2.5 h-2.5" />
+                              <span>Nhắc việc</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -305,12 +347,25 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
             )}
           </div>
 
-          {/* Footer */}
+          {/* Footer with Morning Digest / Batch reminder */}
           {urgentCount > 0 && (
-            <div className="p-2.5 bg-slate-50 border-t border-slate-200 text-center">
-              <span className="text-[11px] text-slate-500">
-                Hãy nhắc nhở chuyên viên kỹ thuật hoàn thành đúng thời hạn giao.
-              </span>
+            <div className="p-3 bg-slate-50 border-t border-slate-200 space-y-2">
+              {onOpenDigestReminder && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenDigestReminder();
+                  }}
+                  className="w-full py-2 px-3 bg-[#005BAB] hover:bg-[#004885] text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Xuất tin tổng hợp đôn đốc giao ban</span>
+                </button>
+              )}
+              <p className="text-[11px] text-center text-slate-500">
+                Nhấp vào "Nhắc việc" để sao chép tin nhắn hoặc gửi qua Viber
+              </p>
             </div>
           )}
         </div>

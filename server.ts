@@ -80,7 +80,7 @@ ${textContent ? `\n\nNội dung văn bản đính kèm:\n${textContent}` : ''}
 
       contentsParts.push({ text: promptInstruction });
 
-      const candidateModels = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
+      const candidateModels = ['gemini-flash-latest', 'gemini-3.8-flash', 'gemini-3.1-flash-lite'];
       let lastError: any = null;
       let response: any = null;
 

@@ -108,12 +108,35 @@ export function subscribeToTasks(
   return unsubscribe;
 }
 
+// Recursively remove undefined values so Firestore setDoc never throws Unsupported field value: undefined
+function sanitizeForFirestore<T extends Record<string, any>>(obj: T): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    return obj.map((item) => (item !== null && typeof item === 'object' ? sanitizeForFirestore(item) : item));
+  }
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      if (value !== null && typeof value === 'object') {
+        result[key] = sanitizeForFirestore(value);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  return result;
+}
+
 // Save or Update a Task to Firestore
 export async function saveTaskToFirestore(task: TaskDocument): Promise<void> {
   const path = `tasks/${task.id}`;
   try {
     const taskDocRef = doc(db, 'tasks', task.id);
-    await setDoc(taskDocRef, task, { merge: true });
+    const cleanedTask = sanitizeForFirestore({
+      ...task,
+      department: task.department || '',
+    });
+    await setDoc(taskDocRef, cleanedTask, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
@@ -137,7 +160,8 @@ export async function seedInitialTasksIfEmpty(mockTasks: TaskDocument[]): Promis
     const snapshot = await getDocs(tasksCol);
     if (snapshot.empty) {
       for (const t of mockTasks) {
-        await setDoc(doc(db, 'tasks', t.id), t);
+        const cleaned = sanitizeForFirestore(t);
+        await setDoc(doc(db, 'tasks', t.id), cleaned);
       }
     }
   } catch (error) {
@@ -174,7 +198,13 @@ export async function saveDailyNoteToFirestore(note: DailyTodoNote): Promise<voi
   const path = `daily_notes/${note.id}`;
   try {
     const noteDocRef = doc(db, 'daily_notes', note.id);
-    await setDoc(noteDocRef, note, { merge: true });
+    const cleanedNote = sanitizeForFirestore({
+      ...note,
+      assignee: note.assignee || '',
+      details: note.details || '',
+      completedAt: note.completedAt || '',
+    });
+    await setDoc(noteDocRef, cleanedNote, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }

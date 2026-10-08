@@ -25,6 +25,7 @@ import {
   CheckSquare,
   Square,
   Sparkles,
+  Send,
 } from 'lucide-react';
 import { CalendarNoteModal } from './CalendarNoteModal';
 
@@ -40,6 +41,8 @@ interface TaskCalendarProps {
   onUpdateNote?: (id: string, updated: Partial<CalendarNote>) => void;
   onDeleteNote?: (id: string) => void;
   onToggleCompleteNote?: (id: string) => void;
+  onOpenTaskReminder?: (task: TaskDocument) => void;
+  onOpenNoteReminder?: (note: CalendarNote) => void;
 }
 
 interface CalendarDayCell {
@@ -71,6 +74,8 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
   onUpdateNote,
   onDeleteNote,
   onToggleCompleteNote,
+  onOpenTaskReminder,
+  onOpenNoteReminder,
 }) => {
   const todayObj = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => todayObj.toISOString().slice(0, 10), [todayObj]);
@@ -795,6 +800,18 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
                         </div>
 
                         <div className="flex items-center space-x-2">
+                          {onOpenNoteReminder && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenNoteReminder(note)}
+                              className="text-amber-700 hover:text-amber-900 font-semibold flex items-center space-x-1 cursor-pointer"
+                              title="Nhắc việc / Sao chép tin nhắn, gửi Viber"
+                            >
+                              <Send className="w-3 h-3 text-amber-600" />
+                              <span>Nhắc việc</span>
+                            </button>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => handleOpenEditNote(note)}
@@ -950,6 +967,18 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
                               <span>Hoàn thành</span>
+                            </button>
+                          )}
+
+                          {onOpenTaskReminder && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenTaskReminder(task)}
+                              className="inline-flex items-center space-x-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-semibold transition cursor-pointer"
+                              title="Nhắc việc / Sao chép tin nhắn, gửi Viber"
+                            >
+                              <Send className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Nhắc việc</span>
                             </button>
                           )}
 

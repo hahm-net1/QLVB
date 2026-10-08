@@ -14,6 +14,12 @@ import { DocumentScanModal } from './components/DocumentScanModal';
 import { FirebaseConfigModal } from './components/FirebaseConfigModal';
 import { BackupModal } from './components/BackupModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
+import { ReminderModal } from './components/ReminderModal';
+import {
+  generateTaskReminderText,
+  generateNoteReminderText,
+  generateDailyDigestReminderText,
+} from './utils/reminderService';
 import {
   FileText,
   Plus,
@@ -124,11 +130,51 @@ export default function App() {
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const [reminderModalData, setReminderModalData] = useState<{
+    isOpen: boolean;
+    title: string;
+    text: string;
+    recipientName?: string;
+  }>({
+    isOpen: false,
+    title: '',
+    text: '',
+  });
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage((prev) => (prev === msg ? null : prev));
     }, 3500);
+  };
+
+  const handleOpenTaskReminder = (task: TaskDocument) => {
+    setReminderModalData({
+      isOpen: true,
+      title: `Đôn đốc văn bản ${task.docNumber}`,
+      text: generateTaskReminderText(task),
+      recipientName: task.assignee,
+    });
+  };
+
+  const handleOpenNoteReminder = (note: CalendarNote) => {
+    setReminderModalData({
+      isOpen: true,
+      title: `Nhắc việc: ${note.title}`,
+      text: generateNoteReminderText(note),
+      recipientName: note.assignee,
+    });
+  };
+
+  const handleOpenDigestReminder = () => {
+    const rawUrgentTasks = urgentNearDueTasks.map((item) => item.task);
+    const rawUrgentNotes = urgentNearDueNotes.map((item) => item.note);
+    setReminderModalData({
+      isOpen: true,
+      title: 'Tổng hợp công việc đôn đốc hôm nay',
+      text: generateDailyDigestReminderText(rawUrgentTasks, rawUrgentNotes),
+      recipientName: 'Nhóm kỹ thuật',
+    });
   };
 
   // 1. Listen to Firebase Auth state
@@ -527,7 +573,7 @@ export default function App() {
     handleUpdateStatus(taskId, 'Hoàn thành', 100);
   };
 
-  // Handlers for Daily To-Do Notes CRUD
+  // Handlers for Daily Calendar Notes CRUD
   const handleAddDailyNote = (
     noteData: Omit<DailyTodoNote, 'id' | 'createdAt' | 'updatedAt'>
   ) => {
@@ -535,6 +581,9 @@ export default function App() {
     const newNote: DailyTodoNote = {
       ...noteData,
       id: `dnote-${Date.now()}`,
+      assignee: noteData.assignee || '',
+      details: noteData.details || '',
+      completedAt: noteData.completedAt || '',
       createdAt: nowIso,
       updatedAt: nowIso,
     };
@@ -542,7 +591,7 @@ export default function App() {
     saveDailyNoteToFirestore(newNote).catch((err) =>
       console.error('Save cloud daily note failed:', err)
     );
-    showToast(`Đã thêm Note công việc ngày ${newNote.noteDate} vào To-Do List`);
+    showToast(`Đã thêm Note công việc ngày ${newNote.noteDate} vào Lịch hoàn thành`);
   };
 
   const handleToggleDailyNoteComplete = (noteId: string) => {
@@ -565,7 +614,7 @@ export default function App() {
         return n;
       })
     );
-    showToast('Đã cập nhật trạng thái hoàn thành Note To-Do');
+    showToast('Đã cập nhật trạng thái Note');
   };
 
   const handleUpdateDailyNote = (noteId: string, updatedFields: Partial<DailyTodoNote>) => {
@@ -575,6 +624,9 @@ export default function App() {
           const updated: DailyTodoNote = {
             ...n,
             ...updatedFields,
+            assignee: updatedFields.assignee !== undefined ? (updatedFields.assignee || '') : (n.assignee || ''),
+            details: updatedFields.details !== undefined ? (updatedFields.details || '') : (n.details || ''),
+            completedAt: updatedFields.completedAt !== undefined ? (updatedFields.completedAt || '') : (n.completedAt || ''),
             updatedAt: new Date().toISOString(),
           };
           saveDailyNoteToFirestore(updated).catch((err) =>
@@ -585,7 +637,7 @@ export default function App() {
         return n;
       })
     );
-    showToast('Đã lưu cập nhật nội dung & hạn hoàn thành Note');
+    showToast('Đã lưu cập nhật nội dung Note');
   };
 
   const handleRequestDeleteDailyNote = (noteId: string) => {
@@ -693,6 +745,9 @@ export default function App() {
         onSelectNote={(note) => {
           setFilterState((prev) => ({ ...prev, viewMode: 'calendar' }));
         }}
+        onOpenTaskReminder={handleOpenTaskReminder}
+        onOpenNoteReminder={handleOpenNoteReminder}
+        onOpenDigestReminder={handleOpenDigestReminder}
         isCloudConnected={isCloudConnected}
         currentUser={
           currentUser
@@ -860,6 +915,8 @@ export default function App() {
                 onUpdateNote={handleUpdateDailyNote}
                 onDeleteNote={handleRequestDeleteDailyNote}
                 onToggleCompleteNote={handleToggleDailyNoteComplete}
+                onOpenTaskReminder={handleOpenTaskReminder}
+                onOpenNoteReminder={handleOpenNoteReminder}
               />
             ) : tasks.length === 0 ? (
               <div className="bg-white rounded-2xl p-10 sm:p-14 text-center border border-slate-200 shadow-sm space-y-4">
@@ -905,6 +962,7 @@ export default function App() {
                 onEdit={handleEditTask}
                 onDelete={handleRequestDeleteTask}
                 onQuickComplete={handleQuickComplete}
+                onOpenReminder={handleOpenTaskReminder}
               />
             )}
       </main>
@@ -956,6 +1014,7 @@ export default function App() {
         onRequestAdmin={() => {
           handleRequireAdmin('Mở quyền Admin để chỉnh sửa thông tin văn bản gốc');
         }}
+        onOpenReminder={handleOpenTaskReminder}
       />
 
       {/* AI Document Scan Modal (Images, PDFs, Camera, Text) */}
@@ -1093,6 +1152,16 @@ export default function App() {
             saveTaskToFirestore(t).catch(console.error);
           }
         }}
+      />
+
+      {/* Reminder / SMS / Zalo Share Modal */}
+      <ReminderModal
+        isOpen={reminderModalData.isOpen}
+        onClose={() => setReminderModalData((prev) => ({ ...prev, isOpen: false }))}
+        title={reminderModalData.title}
+        initialText={reminderModalData.text}
+        recipientName={reminderModalData.recipientName}
+        onNotifyToast={showToast}
       />
     </div>
   );
