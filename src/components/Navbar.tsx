@@ -91,11 +91,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div>
               <div className="hidden sm:flex items-center space-x-2">
                 <span className="text-xs font-semibold text-blue-100">
-                  VNPT Kỹ thuật
+                  XVT - CMTD
                 </span>
                 <span className="text-xs text-blue-300 hidden md:inline">•</span>
                 <span className="text-xs text-blue-200 hidden md:inline-block">
-                  Hệ thống điều hành tác nghiệp
+                  Hệ thống điều hành
                 </span>
               </div>
               <h1 className="text-base sm:text-xl font-bold tracking-tight text-white whitespace-nowrap">
